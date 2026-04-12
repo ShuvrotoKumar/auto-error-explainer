@@ -1,5 +1,6 @@
-import { mkdirSync, writeFileSync, readFileSync } from 'fs';
-import { dirname } from 'path';
+#!/usr/bin/env node
+import { Command } from 'commander';
+import { readFileSync } from 'fs';
 
 // src/core/stack.ts
 function simplifyStack(stack) {
@@ -329,84 +330,27 @@ function buildFallback(message, language, mode) {
     ]
   };
 }
-function appendHistory(filePath, result) {
-  try {
-    mkdirSync(dirname(filePath), { recursive: true });
-    const existing = safeReadJsonArray(filePath);
-    existing.push({
-      ts: Date.now(),
-      title: result.title,
-      matchedPatternId: result.matchedPatternId,
-      confidence: result.confidence,
-      message: result.input.message,
-      source: "node"
-    });
-    writeFileSync(filePath, JSON.stringify(existing, null, 2) + "\n", "utf8");
-  } catch {
-  }
-}
-function safeReadJsonArray(filePath) {
-  try {
-    const text = readFileSync(filePath, "utf8");
-    const parsed = JSON.parse(text);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
 
-// src/node.ts
-function initAutoErrorExplainerNode(options = {}) {
-  const mode = options.mode ?? "beginner";
-  const language = options.language ?? "en";
-  const explainOpts = {
-    mode,
-    language,
-    source: "node"
-  };
-  const onResult = (result) => {
-    options.onExplained?.(result);
-    if (options.historyFile) appendHistory(options.historyFile, result);
-  };
-  const onUncaught = (err) => {
-    const message = err?.message ? String(err.message) : String(err ?? "Uncaught exception");
-    const stack = err?.stack ? String(err.stack) : void 0;
-    const name = err?.name ? String(err.name) : void 0;
-    const result = explainError({ message, stack, name, cause: err }, explainOpts);
-    onResult(result);
-  };
-  const onRejection = (reason) => {
-    const message = reason?.message ? String(reason.message) : String(reason ?? "Unhandled promise rejection");
-    const stack = reason?.stack ? String(reason.stack) : void 0;
-    const name = reason?.name ? String(reason.name) : void 0;
-    const result = explainError({ message, stack, name, cause: reason }, explainOpts);
-    onResult(result);
-  };
-  const originalConsoleError = console.error.bind(console);
-  const patchedConsoleError = (...args) => {
-    try {
-      const first = args[0];
-      const message = first instanceof Error ? first.message : String(first ?? "console.error");
-      const stack = first instanceof Error ? first.stack : void 0;
-      const name = first instanceof Error ? first.name : void 0;
-      const result = explainError({ message, stack, name, cause: args }, explainOpts);
-      onResult(result);
-    } catch {
-    }
-    originalConsoleError(...args);
-  };
-  process.on("uncaughtException", onUncaught);
-  process.on("unhandledRejection", onRejection);
-  console.error = patchedConsoleError;
-  return {
-    stop: () => {
-      process.off("uncaughtException", onUncaught);
-      process.off("unhandledRejection", onRejection);
-      console.error = originalConsoleError;
-    }
-  };
-}
-
-export { initAutoErrorExplainerNode };
-//# sourceMappingURL=node.js.map
-//# sourceMappingURL=node.js.map
+// src/cli.ts
+var program = new Command();
+program.name("auto-error-explainer").description("Explain errors in human-friendly language with fix suggestions").version("0.1.0");
+program.command("analyze").description("Analyze an error log file").argument("<path>", "Path to a log file").option("--lang <lang>", "Language: en|bn", "en").option("--mode <mode>", "Mode: beginner|pro", "beginner").action((path, opts) => {
+  const content = readFileSync(path, "utf8");
+  const lines = content.split(/\r?\n/);
+  const firstNonEmpty = lines.find((l) => l.trim().length > 0) ?? "Unknown error";
+  const stackStart = lines.findIndex((l) => l.includes(" at ") || l.trim().startsWith("at "));
+  const stack = stackStart >= 0 ? lines.slice(stackStart).join("\n") : void 0;
+  const result = explainError(
+    {
+      message: firstNonEmpty,
+      stack
+    },
+    {
+      language: opts.lang,
+      mode: opts.mode}
+  );
+  process.stdout.write(JSON.stringify(result, null, 2) + "\n");
+});
+program.parse(process.argv);
+//# sourceMappingURL=cli.js.map
+//# sourceMappingURL=cli.js.map

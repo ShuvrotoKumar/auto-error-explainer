@@ -25,11 +25,6 @@ export default defineConfig([
     clean: false,
     splitting: false,
     treeshake: true,
-    platform: 'node',
-    esbuildOptions(options: any) {
-      options.banner = {
-        js: '#!/usr/bin/env node\n'
-      };
-    }
+    platform: 'node'
   }
 ]);
