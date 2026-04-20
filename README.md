@@ -54,6 +54,7 @@ import { initAutoErrorExplainer } from 'auto-error-explainer/browser';
 initAutoErrorExplainer({
   mode: 'beginner',        // 'beginner' | 'pro'
   language: 'en',          // 'en' | 'bn'
+  framework: 'react',      // 'react' | 'nextjs' | 'express' | 'node' | 'unknown'
   overlay: true,           // Show dev overlay UI
 });
 ```
@@ -67,6 +68,7 @@ import { initAutoErrorExplainerNode } from 'auto-error-explainer/node';
 initAutoErrorExplainerNode({
   mode: 'pro',
   language: 'en',
+  framework: 'express',    // Optional: specify framework for better context
   historyFile: './logs/error-history.json', // Optional: track errors
 });
 ```
@@ -126,11 +128,13 @@ import { initAutoErrorExplainer } from 'auto-error-explainer/browser';
 initAutoErrorExplainer({
   mode: 'pro',
   language: 'en',
+  framework: 'react',
   overlay: true,
   onExplained: (result) => {
     // Custom logic: send to analytics, logging service, etc.
     console.log('Error explained:', result.title);
     console.log('Confidence:', result.confidence);
+    console.log('Matched pattern:', result.matchedPatternId);
     console.log('Suggested fixes:', result.suggestedFixes);
   },
 });
@@ -152,13 +156,18 @@ class ErrorBoundary extends React.Component {
       {
         mode: 'beginner',
         language: 'en',
-        context: { framework: 'react', componentName: this.constructor.name },
+        source: 'browser',
+        context: { 
+          framework: 'react', 
+          componentName: this.constructor.name 
+        },
       }
     );
     
     // Log or display the explanation
     console.log(explanation.whatHappened);
     console.log(explanation.whyHappened);
+    console.log('Confidence:', explanation.confidence);
   }
   
   render() {
@@ -175,6 +184,7 @@ class ErrorBoundary extends React.Component {
 interface BrowserInitOptions {
   mode?: 'beginner' | 'pro';           // Explanation detail level
   language?: 'en' | 'bn';              // Output language
+  framework?: 'react' | 'nextjs' | 'express' | 'node' | 'unknown'; // Framework context
   overlay?: boolean;                    // Show dev overlay UI
   redact?: boolean;                     // Mask sensitive data in production
   onExplained?: (result: ExplainResult) => void;  // Custom callback
@@ -187,6 +197,7 @@ interface BrowserInitOptions {
 interface NodeInitOptions {
   mode?: 'beginner' | 'pro';
   language?: 'en' | 'bn';
+  framework?: 'react' | 'nextjs' | 'express' | 'node' | 'unknown'; // Framework context
   historyFile?: string;                 // Path to error history JSON file
   onExplained?: (result: ExplainResult) => void;
 }
@@ -278,9 +289,12 @@ import { initAutoErrorExplainerNode } from 'auto-error-explainer/node';
 // Captures API errors with route context
 initAutoErrorExplainerNode({
   mode: 'pro',
+  framework: 'express',
   onExplained: (result) => {
     // Log with API route information
-    console.log(`Error in ${result.input.cause?.route}: ${result.title}`);
+    console.log(`Error: ${result.title}`);
+    console.log(`Confidence: ${result.confidence}`);
+    console.log(`Framework context: ${result.confidence > 0.8 ? 'Matched pattern' : 'Generic explanation'}`);
   },
 });
 ```
@@ -289,18 +303,22 @@ initAutoErrorExplainerNode({
 
 Built-in patterns for common errors:
 
-- `Cannot read properties of undefined`
-- `Invalid hook call` (React)
-- `Hydration failed` (Next.js)
-- `undefined is not a function`
-- `Cannot find module`
-- And more...
+- **`js-cannot-read-properties-of-undefined`** - Accessing properties on undefined values
+- **`react-invalid-hook-call`** - Invalid React Hook usage
+- **`nextjs-hydration-failed`** - Next.js hydration mismatches
 
 **Pattern matching features:**
-- Exact string matching
-- Fuzzy matching for similar errors
-- Regex pattern support
-- Confidence scoring
+- Exact string matching via `messageIncludes`
+- Regex pattern support via `messageRegex`
+- Fuzzy matching using Levenshtein similarity
+- Confidence scoring (0.0 - 1.0)
+- Multi-language explanations (English & Bengali)
+
+Each pattern includes:
+- Unique ID for tracking
+- Matching rules (name, message includes, regex)
+- Localized explanations with fixes
+- Code snippets for common solutions
 
 ## 🤝 Contributing
 
@@ -326,12 +344,25 @@ Patterns are defined in `src/core/patterns.ts`:
 {
   id: 'unique-pattern-id',
   match: {
-    messageIncludes: ['error substring'],
-    messageRegex: 'optional-regex-pattern',
+    name?: 'ErrorName',                    // Optional: match specific error names
+    messageIncludes?: ['substring1'],       // Array: match any of these substrings
+    messageRegex?: 'regex-pattern',         // Optional: regex pattern matching
   },
   explanation: {
-    en: { title, whatHappened, whyHappened, fixes: [] },
-    bn: { title, whatHappened, whyHappened, fixes: [] },
+    en: { 
+      title: 'Error title',
+      whatHappened: 'What occurred',
+      whyHappened: 'Why it occurred',
+      fixes: [
+        {
+          title: 'Fix title',
+          description: 'Fix description',
+          snippet: 'code snippet',
+          docsUrl: 'https://...'
+        }
+      ]
+    },
+    bn: { /* Bengali translation */ }
   }
 }
 ```
