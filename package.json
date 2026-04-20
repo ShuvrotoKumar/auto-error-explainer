@@ -1,6 +1,6 @@
 {
   "name": "auto-error-explainer",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Human-readable error explanations and fix suggestions for browser and Node.js",
   "license": "MIT",
   "type": "module",
