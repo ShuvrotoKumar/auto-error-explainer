@@ -16,7 +16,8 @@ program
   .argument('<path>', 'Path to a log file')
   .option('--lang <lang>', 'Language: en|bn', 'en')
   .option('--mode <mode>', 'Mode: beginner|pro', 'beginner')
-  .action((path: string, opts: { lang: 'en' | 'bn'; mode: 'beginner' | 'pro' }) => {
+  .option('--framework <framework>', 'Framework: react|nextjs|express|node|unknown', 'unknown')
+  .action((path: string, opts: { lang: 'en' | 'bn'; mode: 'beginner' | 'pro'; framework: 'react' | 'nextjs' | 'express' | 'node' | 'unknown' }) => {
     const content = readFileSync(path, 'utf8');
 
     const lines = content.split(/\r?\n/);
@@ -33,7 +34,10 @@ program
       {
         language: opts.lang,
         mode: opts.mode,
-        source: 'cli'
+        source: 'cli',
+        context: {
+          framework: opts.framework
+        }
       }
     );
 

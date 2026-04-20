@@ -1,8 +1,9 @@
-import { f as ExplainerMode, e as ExplainerLanguage, a as ExplainResult } from './types-BZ2cTa_U.js';
+import { f as ExplainerMode, e as ExplainerLanguage, g as FrameworkName, a as ExplainResult } from './types-tbxh32II.js';
 
 interface BrowserInitOptions {
     mode?: ExplainerMode;
     language?: ExplainerLanguage;
+    framework?: FrameworkName;
     overlay?: boolean;
     redact?: boolean;
     onExplained?: (result: ExplainResult) => void;

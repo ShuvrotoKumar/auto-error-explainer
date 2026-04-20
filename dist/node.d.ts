@@ -1,5 +1,6 @@
 type ExplainerMode = 'beginner' | 'pro';
 type ExplainerLanguage = 'en' | 'bn';
+type FrameworkName = 'react' | 'nextjs' | 'express' | 'node' | 'unknown';
 interface ErrorEventLike {
     name?: string;
     message: string;
@@ -40,6 +41,7 @@ interface ExplainResult extends ErrorExplanation {
 interface NodeInitOptions {
     mode?: ExplainerMode;
     language?: ExplainerLanguage;
+    framework?: FrameworkName;
     historyFile?: string;
     onExplained?: (result: ExplainResult) => void;
 }

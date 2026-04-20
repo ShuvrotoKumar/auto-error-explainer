@@ -1,10 +1,11 @@
-import type { ExplainOptions, ExplainResult, ExplainerLanguage, ExplainerMode } from './types.js';
+import type { ExplainOptions, ExplainResult, ExplainerLanguage, ExplainerMode, FrameworkName } from './types.js';
 import { explainError } from './core/explain.js';
 import { appendHistory } from './node/history.js';
 
 export interface NodeInitOptions {
   mode?: ExplainerMode;
   language?: ExplainerLanguage;
+  framework?: FrameworkName;
   historyFile?: string;
   onExplained?: (result: ExplainResult) => void;
 }
@@ -20,7 +21,10 @@ export function initAutoErrorExplainerNode(options: NodeInitOptions = {}): NodeC
   const explainOpts: ExplainOptions = {
     mode,
     language,
-    source: 'node'
+    source: 'node',
+    context: {
+      framework: options.framework
+    }
   };
 
   const onResult = (result: ExplainResult) => {

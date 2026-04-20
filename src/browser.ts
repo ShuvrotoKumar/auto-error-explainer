@@ -1,10 +1,11 @@
-import type { ExplainOptions, ExplainResult, ExplainerLanguage, ExplainerMode } from './types.js';
+import type { ExplainOptions, ExplainResult, ExplainerLanguage, ExplainerMode, FrameworkName } from './types.js';
 import { explainError } from './core/explain.js';
 import { createOverlay, type OverlayController } from './ui/overlay.js';
 
 export interface BrowserInitOptions {
   mode?: ExplainerMode;
   language?: ExplainerLanguage;
+  framework?: FrameworkName;
   overlay?: boolean;
   redact?: boolean;
   onExplained?: (result: ExplainResult) => void;
@@ -22,7 +23,10 @@ export function initAutoErrorExplainer(options: BrowserInitOptions = {}): Browse
   const explainOpts: ExplainOptions = {
     mode,
     language,
-    source: 'browser'
+    source: 'browser',
+    context: {
+      framework: options.framework
+    }
   };
 
   let overlay: OverlayController | undefined;

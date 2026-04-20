@@ -1,6 +1,7 @@
 type ExplainerMode = 'beginner' | 'pro';
 type ExplainerLanguage = 'en' | 'bn';
 type ErrorSource = 'browser' | 'node' | 'cli' | 'unknown';
+type FrameworkName = 'react' | 'nextjs' | 'express' | 'node' | 'unknown';
 interface ErrorEventLike {
     name?: string;
     message: string;
@@ -39,7 +40,7 @@ interface ExplainOptions {
     language?: ExplainerLanguage;
     source?: ErrorSource;
     context?: {
-        framework?: 'react' | 'nextjs' | 'express' | 'node' | 'unknown';
+        framework?: FrameworkName;
         componentName?: string;
         hookName?: string;
         apiRoute?: string;
@@ -71,4 +72,4 @@ interface ExplainResult extends ErrorExplanation {
     input: ErrorEventLike;
 }
 
-export type { ExplainOptions as E, FixSuggestion as F, Pattern as P, SimplifiedStack as S, ExplainResult as a, ErrorEventLike as b, ErrorExplanation as c, ErrorSource as d, ExplainerLanguage as e, ExplainerMode as f, StackFrame as g };
+export type { ExplainOptions as E, FixSuggestion as F, Pattern as P, SimplifiedStack as S, ExplainResult as a, ErrorEventLike as b, ErrorExplanation as c, ErrorSource as d, ExplainerLanguage as e, ExplainerMode as f, FrameworkName as g, StackFrame as h };

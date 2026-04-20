@@ -2,6 +2,7 @@ import type { ExplainOptions, ExplainResult, Pattern } from '../types.js';
 import { simplifyStack } from './stack.js';
 import { matchPattern } from './matcher.js';
 import { patterns } from './patterns.js';
+import { applyFrameworkSuggestions } from './framework.js';
 
 export function explainError(input: { message: string; stack?: string; name?: string; cause?: unknown }, options: ExplainOptions = {}): ExplainResult {
   const mode = options.mode ?? 'beginner';
@@ -18,7 +19,7 @@ export function explainError(input: { message: string; stack?: string; name?: st
     // mode currently only influences verbosity; keep it minimal for MVP
     const confidence = matched?.score ?? 0.6;
 
-    return {
+    return applyFrameworkSuggestions({
       input: {
         name: input.name,
         message: input.message,
@@ -32,11 +33,11 @@ export function explainError(input: { message: string; stack?: string; name?: st
       simplifiedStack,
       confidence,
       matchedPatternId: best.id
-    };
+    }, options);
   }
 
   const fallback = buildFallback(input.message, language, mode);
-  return {
+  return applyFrameworkSuggestions({
     input: {
       name: input.name,
       message: input.message,
@@ -46,7 +47,7 @@ export function explainError(input: { message: string; stack?: string; name?: st
     ...fallback,
     simplifiedStack,
     confidence: 0.2
-  };
+  }, options);
 }
 
 function buildFallback(message: string, language: 'en' | 'bn', mode: 'beginner' | 'pro') {
